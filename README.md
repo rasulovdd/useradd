@@ -12,36 +12,23 @@
     git clone https://github.com/rasulovdd/useradd.git && cd useradd
     ```
 
-2. Устанавливаем виртуальное окружение<br/>
+2. Редактируйте Custom Setup, например можно добавить alias 
 
+3. запускайте)
+
+## Пример использования:
+
+1. С URL, если у вас pub ключ опубликован в интернете 
     ```bash
-    python3 -m venv env
+    ./create_user.sh dev1 https://example.com/dev1.pub
     ```
 
-3. Активируем её <br/>
-
+2. С путем к файлу, если у вас pub ключ в файле
     ```bash
-    source env/bin/activate
+    ./create_user.sh admin1 ~/.ssh/id_rsa.pub
     ```
 
-4. Скачиваем и устанавливаем нужные библиотеки<br/>
-
+3. С самим ключом
     ```bash
-    pip install -r requirements.txt
+    ./create_user.sh user2 "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD... user@host"
     ```
-
-5. Создаем .env файл с вашими данными, можно создать из шаблона и просто поправить поля <br/>
-
-    ```bash
-    cp .env.sample .env
-    nano .env
-    ```
-
-## Дополнительно
-пример заполнения .env файла:
-
-    bot_tokken="Токен бота"
-    #пользователь c правами администратора (поменять на свой)
-    admins_id="2964812"
-    #статус debug режима
-    debug_on=1 
