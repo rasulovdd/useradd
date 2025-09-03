@@ -12,8 +12,8 @@
     git clone https://github.com/rasulovdd/useradd.git && cd useradd
     ```
 
-2. Редактируйте Custom Setup, например можно добавить alias 
-    находим кусок кода и добавляем все что вам нужно
+2. Редактируйте Custom Setup, находим кусок кода в create_user.sh и добавляем все что вам нужно
+   
     ```bash
     # 4. Aliases и welcome message
     cat <<EOF >> "$HOME_DIR/.bashrc"
