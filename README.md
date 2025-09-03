@@ -13,8 +13,26 @@
     ```
 
 2. Редактируйте Custom Setup, например можно добавить alias 
-
-3. Даем права на запуск 
+    находим кусок кода и добавляем все что вам нужно
+    ```bash
+    # 4. Aliases и welcome message
+    cat <<EOF >> "$HOME_DIR/.bashrc"
+    
+    # --- Custom Setup ---
+    alias ll='ls -alF'
+    alias gs='git status'
+    alias grep='grep --color=auto'
+    alias egrep='egrep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias dclogs='docker compose logs'
+    
+    echo "Добро пожаловать, $USERNAME!"
+    echo "Рабочая директория: \$(pwd)"
+    echo "Дата: \$(date)"
+    EOF
+    ```
+    
+4. Даем права на запуск 
     ```bash
     chmod +x create_user.sh
     ```
