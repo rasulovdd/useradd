@@ -188,6 +188,14 @@ if [[ $(id -u) -eq 0 ]]; then
     export PS1="\[$(tput setab 1)\]Warning! You are root!\[$(tput sgr0)\]\n$PS1"
 fi
 
+# Предупреждение для root v2
+#if [[ $(id -u) -eq 0 ]]; then
+#    local red_bg=$(tput setab 1)
+#    local white_fg=$(tput setaf 7)
+#    local reset=$(tput sgr0)
+#    export PS1="\[${red_bg}${white_fg}\]Warning! You are root!\[${reset}\]\n$PS1"
+#fi
+
 # Функция для распаковки архивов
 extract() {
  for archive in "$@"; do
@@ -374,33 +382,23 @@ EOF
         echo "# === Функция для распаковки архивов ===" >> "$temp_file"
         cat >> "$temp_file" << 'EOF'
 extract() {
-    if [ $# -eq 0 ]; then
-        echo "Usage: extract <file1> [file2] ..."
-        return 1
-    fi
-    
-    for archive in "$@"; do
-        if [ -f "$archive" ]; then
-            case "$archive" in
-                *.tar.bz2|*.tbz2) tar xvjf "$archive" ;;
-                *.tar.gz|*.tgz)   tar xvzf "$archive" ;;
-                *.tar.xz|*.txz)   tar xvf "$archive" ;;
-                *.bz2)           bunzip2 "$archive" ;;
-                *.rar)           unrar x "$archive" ;;
-                *.gz)            gunzip "$archive" ;;
-                *.tar)           tar xvf "$archive" ;;
-                *.zip)           unzip "$archive" ;;
-                *.Z)             uncompress "$archive" ;;
-                *.7z)            7z x "$archive" ;;
-                *.deb)           ar x "$archive" ;;
-                *)               echo "Don't know how to extract '$archive'..." 
-                               return 1 ;;
-            esac
-        else
-            echo "'$archive' is not a valid file!"
-            return 1
-        fi
-    done
+ for archive in "$@"; do
+  if [ -f "$archive" ]; then
+   case $archive in
+    *.tar.bz2) tar xvjf $archive ;;
+    *.tar.gz) tar xvzf $archive ;;
+    *.bz2) bunzip2 $archive ;;
+    *.rar) rar x $archive ;;
+    *.gz) gunzip $archive ;;
+    *.tar) tar xvf $archive ;;
+    *.zip) unzip $archive ;;
+    *.7z) 7z x $archive ;;
+    *) echo "don't know how to extract '$archive'..." ;;
+   esac
+  else
+   echo "'$archive' is not a valid file!"
+  fi
+ done
 }
 EOF
         echo "" >> "$temp_file"
