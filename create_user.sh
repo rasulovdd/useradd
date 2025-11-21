@@ -178,11 +178,6 @@ alias fgrep='fgrep --color=auto'
 # Красочный PS1
 export PS1="\[$(tput setaf 3)\]bash\[$(tput setaf 4)\]:\[$(tput bold)\]\[$(tput setaf 6)\]\h\[$(tput setaf 4)\]@\[$(tput setaf 2)\]\u\[$(tput setaf 4)\]:\[$(tput setaf 5)\]\w\n\[$(tput setaf 3)\]\\$ \[$(tput sgr0)\]"
 
-# Если пользователь — root, добавляем предупреждение
-if [[ \$(id -u) -eq 0 ]]; then
-    export PS1="\[$(tput setab 1)\]Warning! You are root!\[$(tput sgr0)\]\n\$PS1"
-fi
-
 # Функция для распаковки архивов
 extract() {
     for archive in "\$@"; do
