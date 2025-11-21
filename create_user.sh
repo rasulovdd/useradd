@@ -292,6 +292,13 @@ delete_user() {
     fi
 }
 
+# --- Custom Setup ---
+alias ll='ls -alF'
+alias gs='git status'
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias dclogs='docker compose logs'
 
 # Главное меню
 while true; do
@@ -305,22 +312,5 @@ while true; do
 
     read -p "Выберите действие [0-2]: " choice
 
-    case $choice in
-        1)
-            echo -e "\033[1;33м→  Создание пользователя\033[0m"
-            create_user
-            ;;
-        2)
-            echo -e "\033[1;33м→  Удаление пользователя\033[0m"
-            delete_user
-            ;;
-        0)
-            echo -e "\033[1;32мДо свидания!\033[0m"
-            break
-            ;;
-        *)
-            echo -e "\033[1;31м[-] Неверный выбор. Введите 0, 1 или 2.\033[0m"
-            ;;
-    esac
-    echo ""
-done
+echo "[+] Пользователь $USERNAME создан и готов к работе!"
+echo "[+] SSH ключ настроен: $HOME_DIR/.ssh/authorized_keys"
