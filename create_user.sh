@@ -99,12 +99,14 @@ create_user() {
     if [ -n "$ssh_key" ]; then
         echo "$ssh_key" >> "$HOME_DIR/.ssh/authorized_keys"
         chmod 600 "$HOME_DIR/.ssh/authorized_keys"
-        chown "$username":"$username" "$HOME_DIR/.ssh/authorized_keys"
         ssh_key_added=1
         echo -e "\033[1;32m[+] SSH-ключ добавлен\033[0m"
     else
         echo -e "\033[1;33m[*] SSH-ключ не указан — пропуск\033[0m"
     fi
+
+    # ВАЖНО: устанавливаем правильного владельца для всей SSH директории
+    chown -R "$username":"$username" "$HOME_DIR/.ssh"
 
     # Предоставление sudo-прав (Enter или Y/y/yes = да; N/n/no = нет)
     read -p "Предоставить пользователю $username права sudo? [Y/n]: " sudo_choice
