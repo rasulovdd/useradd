@@ -277,6 +277,203 @@ delete_user() {
     fi
 }
 
+setup_bashrc() {
+    local bashrc="$HOME/.bashrc"
+    local backup_file="${bashrc}.backup.$(date +%Y%m%d_%H%M%S)"
+    local temp_file=$(mktemp)
+    
+    # Цвета для вывода
+    local RED='\033[0;31m'
+    local GREEN='\033[0;32m'
+    local YELLOW='\033[1;33m'
+    local BLUE='\033[0;34m'
+    local NC='\033[0m' # No Color
+
+    # Функция для вывода сообщений
+    log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+    log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+    log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
+    log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+
+    # Проверяем, существует ли .bashrc
+    if [ ! -f "$bashrc" ]; then
+        log_info "Файл $bashrc не найден. Создаём..."
+        touch "$bashrc"
+    fi
+
+    # Создаём резервную копию
+    log_info "Создаём резервную копию: $backup_file"
+    cp "$bashrc" "$backup_file"
+
+    # Копируем содержимое в временный файл
+    cp "$bashrc" "$temp_file"
+
+    # Добавляем разделитель если файл не пустой
+    if [ -s "$temp_file" ]; then
+        echo "" >> "$temp_file"
+        echo "# ============================================================" >> "$temp_file"
+        echo "# Custom settings added by setup script on $(date)" >> "$temp_file"
+        echo "# ============================================================" >> "$temp_file"
+        echo "" >> "$temp_file"
+    fi
+
+    # 1. Добавляем алиасы (если их ещё нет)
+    if ! grep -q "alias ll='ls -alF'" "$temp_file"; then
+        log_info "Добавляем алиасы..."
+        echo "# === Алиасы ===" >> "$temp_file"
+        echo "alias ll='ls -alF'" >> "$temp_file"
+        echo "alias la='ls -A'" >> "$temp_file"
+        echo "alias l='ls -CF'" >> "$temp_file"
+        echo "alias gs='git status'" >> "$temp_file"
+        echo "alias grep='grep --color=auto'" >> "$temp_file"
+        echo "alias egrep='egrep --color=auto'" >> "$temp_file"
+        echo "alias fgrep='fgrep --color=auto'" >> "$temp_file"
+        echo "alias ..='cd ..'" >> "$temp_file"
+        echo "alias ...='cd ../..'" >> "$temp_file"
+        echo "" >> "$temp_file"
+    else
+        log_info "Алиасы уже настроены, пропускаем..."
+    fi
+
+    # 2. Добавляем красочный PS1 (если его ещё нет)
+    if ! grep -q "export PS1=.*tput setaf" "$temp_file"; then
+        log_info "Добавляем красочный PS1..."
+        echo "# === Красочный Prompt ===" >> "$temp_file"
+        
+        # Основной PS1
+        cat >> "$temp_file" << 'EOF'
+export PS1="\[$(tput setaf 3)\]bash\[$(tput setaf 4)\]:\[$(tput bold)\]\[$(tput setaf 6)\]\h\[$(tput setaf 4)\]@\[$(tput setaf 2)\]\u\[$(tput setaf 4)\]:\[$(tput setaf 5)\]\w\n\[$(tput setaf 3)\]\\$ \[$(tput sgr0)\]"
+
+# Предупреждение для root
+if [[ $(id -u) -eq 0 ]]; then
+    export PS1="\[$(tput setab 1)\]\[$(tput setaf 7)\]Warning! You are root!\[$(tput sgr0)\]\n$PS1"
+fi
+
+EOF
+    else
+        log_info "PS1 уже настроен, пропускаем..."
+    fi
+
+    # 3. Добавляем функцию extract (если её ещё нет)
+    if ! grep -q "^extract()" "$temp_file"; then
+        log_info "Добавляем функцию extract..."
+        echo "# === Функция для распаковки архивов ===" >> "$temp_file"
+        cat >> "$temp_file" << 'EOF'
+extract() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: extract <file1> [file2] ..."
+        return 1
+    fi
+    
+    for archive in "$@"; do
+        if [ -f "$archive" ]; then
+            case "$archive" in
+                *.tar.bz2|*.tbz2) tar xvjf "$archive" ;;
+                *.tar.gz|*.tgz)   tar xvzf "$archive" ;;
+                *.tar.xz|*.txz)   tar xvf "$archive" ;;
+                *.bz2)           bunzip2 "$archive" ;;
+                *.rar)           unrar x "$archive" ;;
+                *.gz)            gunzip "$archive" ;;
+                *.tar)           tar xvf "$archive" ;;
+                *.zip)           unzip "$archive" ;;
+                *.Z)             uncompress "$archive" ;;
+                *.7z)            7z x "$archive" ;;
+                *.deb)           ar x "$archive" ;;
+                *)               echo "Don't know how to extract '$archive'..." 
+                               return 1 ;;
+            esac
+        else
+            echo "'$archive' is not a valid file!"
+            return 1
+        fi
+    done
+}
+EOF
+        echo "" >> "$temp_file"
+    else
+        log_info "Функция extract уже существует, пропускаем..."
+    fi
+
+    # 4. Добавляем полезные функции (если их ещё нет)
+    if ! grep -q "^mkcd()" "$temp_file"; then
+        log_info "Добавляем дополнительные функции..."
+        echo "# === Дополнительные функции ===" >> "$temp_file"
+        cat >> "$temp_file" << 'EOF'
+# Создать директорию и перейти в неё
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+# Найти файл по имени
+ff() {
+    find . -type f -iname "*$1*" 2>/dev/null
+}
+
+# Найти директорию по имени
+fd() {
+    find . -type d -iname "*$1*" 2>/dev/null
+}
+
+# Показать размер файлов и директорий
+ds() {
+    du -sh "$@" 2>/dev/null | sort -h
+}
+
+EOF
+    fi
+
+    # 5. Добавляем настройки безопасности
+    if ! grep -q "HISTCONTROL" "$temp_file"; then
+        log_info "Добавляем настройки истории..."
+        echo "# === Настройки истории ===" >> "$temp_file"
+        echo "HISTCONTROL=ignoreboth" >> "$temp_file"
+        echo "HISTSIZE=1000" >> "$temp_file"
+        echo "HISTFILESIZE=2000" >> "$temp_file"
+        echo "shopt -s histappend" >> "$temp_file"
+        echo "" >> "$temp_file"
+    fi
+
+    # Проверяем изменения
+    if diff "$bashrc" "$temp_file" > /dev/null; then
+        log_info "Изменений не требуется, всё уже настроено."
+        rm -f "$temp_file" "$backup_file"
+        return 0
+    fi
+
+    # Копируем обратно в .bashrc
+    if cp "$temp_file" "$bashrc"; then
+        log_success "Настройки успешно применены к $bashrc"
+        log_info "Резервная копия сохранена как: $backup_file"
+    else
+        log_error "Ошибка при записи в $bashrc"
+        rm -f "$temp_file"
+        return 1
+    fi
+
+    # Очистка временного файла
+    rm -f "$temp_file"
+
+    # Применяем изменения в текущей сессии
+    log_info "Применяем изменения в текущей сессии..."
+    if source "$bashrc" 2>/dev/null; then
+        log_success "Изменения применены в текущей сессии"
+    else
+        log_warning "Для полного применения изменений выполните: source $bashrc"
+    fi
+
+    # Показываем summary
+    echo
+    log_success "Настройка завершена!"
+    log_info "Добавлены:"
+    log_info "  • Полезные алиасы (ll, la, gs, ...)"
+    log_info "  • Красочный prompt (PS1)"
+    log_info "  • Функция extract для архивов"
+    log_info "  • Дополнительные функции (mkcd, ff, fd)"
+    log_info "  • Настройки истории bash"
+}
+
+
+
 # Главное меню
 while true; do
     echo -e "\033[1;34m─────────────────────────────────────────────────\033[0m"
@@ -284,6 +481,7 @@ while true; do
     echo -e "\033[1;34m─────────────────────────────────────────────────\033[0m"
     echo "1. Создать пользователя"
     echo "2. Удалить пользователя"
+    echo "3. Применить стандартные настройки"
     echo -e "\033[1;31m0. Выход\033[0m"
     echo -e "\033[1;34m─────────────────────────────────────────────────\033[0m"
 
@@ -297,6 +495,10 @@ while true; do
         2)
             echo -e "\033[1;33m→  Удаление пользователя\033[0m"
             delete_user
+            ;;
+        3)
+            echo -e "\033[1;33m→  Применить стандартные настройки\033[0m"
+            setup_bashrc
             ;;
         0)
             echo -e "\033[1;32mДо свидания!\033[0m"
