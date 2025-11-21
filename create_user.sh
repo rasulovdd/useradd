@@ -183,6 +183,11 @@ alias fgrep='fgrep --color=auto'
 # Красочный PS1
 export PS1="\[$(tput setaf 3)\]bash\[$(tput setaf 4)\]:\[$(tput bold)\]\[$(tput setaf 6)\]\h\[$(tput setaf 4)\]@\[$(tput setaf 2)\]\u\[$(tput setaf 4)\]:\[$(tput setaf 5)\]\w\n\[$(tput setaf 3)\]\\$ \[$(tput sgr0)\]"
 
+# Предупреждение для root
+if [[ $(id -u) -eq 0 ]]; then
+    export PS1="\[$(tput setab 1)\]\[$(tput setaf 7)\]Warning! You are root!\[$(tput sgr0)\]\n$PS1"
+fi
+
 # Функция для распаковки архивов
 extract() {
     for archive in "\$@"; do
@@ -320,9 +325,9 @@ setup_bashrc() {
     # Добавляем разделитель если файл не пустой
     if [ -s "$temp_file" ]; then
         echo "" >> "$temp_file"
-        echo "# ============================================================" >> "$temp_file"
+        echo "# ========================================================================" >> "$temp_file"
         echo "# Custom settings added by setup script on $(date)" >> "$temp_file"
-        echo "# ============================================================" >> "$temp_file"
+        echo "# ========================================================================" >> "$temp_file"
         echo "" >> "$temp_file"
     fi
 
