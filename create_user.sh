@@ -12,7 +12,6 @@ echo "│ ██║  ██║██║  ██║███████║╚█
 echo "│ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚══════╝ ╚═════╝   ╚═══╝  ╚═════╝ ╚═════╝  │"
 echo "└─────────────────────────────────────────────────────────────────────────────┘"
 echo ""
-# echo "───────────────────────────────────────────────────────────────────────────────"
 echo "useradd by rasulovdd"
 echo "Проект: https://github.com/rasulovdd/useradd"
 echo "Контакты: @RasulovDD"
@@ -44,11 +43,10 @@ create_user() {
     fi
 
     # Проверка корректности имени пользователя
-    if [[ ! "$username" =~ ^[a-z_][a-z0-9_-]*[$]?$ ]]; then
+    if [[ ! "$username" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
         echo -e "\033[1;31m[-] Ошибка: некорректное имя пользователя. Имя должно:"
         echo -e "  - начинаться с буквы или подчёркивания"
-        echo -e "  - содержать только строчные буквы, цифры, подчёркивание и дефис"
-        echo -e "  - не заканчиваться дефисом\033[0m"
+        echo -e "  - содержать только строчные буквы, цифры, подчёркивание и дефис\033[0m"
         return 1
     fi
 
@@ -61,6 +59,12 @@ create_user() {
     # Проверка совпадения паролей
     if [ "$password" != "$password2" ]; then
         echo -e "\033[1;31m[-] Ошибка: пароли не совпадают!\033[0m"
+        return 1
+    fi
+
+    # Проверка длины пароля
+    if [ ${#password} -lt 3 ]; then
+        echo -e "\033[1;31m[-] Ошибка: пароль слишком короткий (минимум 3 символа)!\033[0m"
         return 1
     fi
 
@@ -107,15 +111,15 @@ create_user() {
     echo
 
     # Если ввод пустой (Enter) или начинается с Y/y — считаем за "да"
-    if [ -z "$sudo_choice" ] || [[ "$sudo_choice" =~ ^[yY][eE]?[sS]?$ ]]; then
+    if [ -z "$sudo_choice" ] || [[ "$sudo_choice" =~ ^[yY] ]]; then
         if usermod -aG sudo "$username"; then
             sudo_granted=1
             echo -e "\033[1;32m[+] Права sudo предоставлены\033[0m"
         else
             echo -e "\033[1;31m[-] Ошибка: не удалось добавить в группу sudo\033[0m"
         fi
-    # Если введено N/n/no/NO — не предоставляем
-    elif [[ "$sudo_choice" =~ ^[nN][oO]?$ ]]; then
+    # Если введено N/n/no — не предоставляем
+    elif [[ "$sudo_choice" =~ ^[nN] ]]; then
         echo -e "\033[1;33m[*] Права sudo не предоставлены (выбор пользователя)\033[0m"
     # Любой другой ввод — тоже считаем за отказ (с пояснением)
     else
@@ -148,7 +152,7 @@ create_user() {
     else
         if [ -z "$sudo_choice" ]; then
             echo -e "\033[1;31m✗ Не удалось предоставить права sudo (по умолчанию)\033[0m"
-        elif [[ "$sudo_choice" =~ ^[nN][oO]?$ ]]; then
+        elif [[ "$sudo_choice" =~ ^[nN] ]]; then
             echo -e "\033[1;33m⁍ Права sudo не предоставлены (явный отказ)\033[0m"
         else
             echo -e "\033[1;33m⁍ Права sudo не предоставлены (ввод: '$sudo_choice')\033[0m"
@@ -160,49 +164,49 @@ create_user() {
     # Записываем всё в .bashrc
     cat <<EOF >> "$HOME_DIR/.bashrc"
 
-    # --- Custom Setup ---
+# --- Custom Setup ---
 
-    # Алиасы 
-    alias ll='ls -alF'
-    alias gs='git status'
-    alias grep='grep --color=auto'
-    alias egrep='egrep --color=auto'
-    alias fgrep='fgrep --color=auto'
+# Алиасы 
+alias ll='ls -alF'
+alias gs='git status'
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
 
-    # Красочный PS1
-    export PS1="\[$(tput setaf 3)\]bash\[$(tput setaf 4)\]:\[$(tput bold)\]\[$(tput setaf 6)\]\h\[$(tput setaf 4)\]@\[$(tput setaf 2)\]\u\[$(tput setaf 4)\]:\[$(tput setaf 5)\]\w\n\[$(tput setaf 3)\]\\$ \[$(tput sgr0)\]"
+# Красочный PS1
+export PS1="\[$(tput setaf 3)\]bash\[$(tput setaf 4)\]:\[$(tput bold)\]\[$(tput setaf 6)\]\h\[$(tput setaf 4)\]@\[$(tput setaf 2)\]\u\[$(tput setaf 4)\]:\[$(tput setaf 5)\]\w\n\[$(tput setaf 3)\]\\$ \[$(tput sgr0)\]"
 
-    # Если пользователь — root, добавляем предупреждение
-    if [[ $(id -u) -eq 0 ]]; then
-        export PS1="\[$(tput setab 1)\]Warning! You are root!\[$(tput sgr0)\]\n$PS1"
-    fi
+# Если пользователь — root, добавляем предупреждение
+if [[ \$(id -u) -eq 0 ]]; then
+    export PS1="\[$(tput setab 1)\]Warning! You are root!\[$(tput sgr0)\]\n\$PS1"
+fi
 
-    # Функция для распаковки архивов
-    extract() {
-        for archive in "$@"; do
-            if [ -f "$archive" ]; then
-                case $archive in
-                    *.tar.bz2) tar xvjf "$archive" ;;
-                    *.tar.gz)  tar xvzf "$archive" ;;
-                    *.bz2)     bunzip2 "$archive" ;;
-                    *.rar)     rar x "$archive" ;;
-                    *.gz)      gunzip "$archive" ;;
-                    *.tar)     tar xvf "$archive" ;;
-                    *.zip)     unzip "$archive" ;;
-                    *.7z)      7z x "$archive" ;;
-                    *)         echo "Don't know how to extract '$archive'..." ;;
-                esac
-            else
-                echo "'$archive' is not a valid file!"
-            fi
-        done
-    }
+# Функция для распаковки архивов
+extract() {
+    for archive in "\$@"; do
+        if [ -f "\$archive" ]; then
+            case \$archive in
+                *.tar.bz2) tar xvjf "\$archive" ;;
+                *.tar.gz)  tar xvzf "\$archive" ;;
+                *.bz2)     bunzip2 "\$archive" ;;
+                *.rar)     rar x "\$archive" ;;
+                *.gz)      gunzip "\$archive" ;;
+                *.tar)     tar xvf "\$archive" ;;
+                *.zip)     unzip "\$archive" ;;
+                *.7z)      7z x "\$archive" ;;
+                *)         echo "Don't know how to extract '\$archive'..." ;;
+            esac
+        else
+            echo "'\$archive' is not a valid file!"
+        fi
+    done
+}
 
-    # Приветственное сообщение при входе
-    echo "Добро пожаловать, $username!"
-    echo "Рабочая директория: \$(pwd)"
-    echo "Дата: \$(date)"
-    EOF
+# Приветственное сообщение при входе
+echo "Добро пожаловать, $username!"
+echo "Рабочая директория: \$(pwd)"
+echo "Дата: \$(date)"
+EOF
 
     # Устанавливаем владельца файла — пользователь, а не root
     chown "$username:$username" "$HOME_DIR/.bashrc"
@@ -219,7 +223,6 @@ delete_user() {
     # Флаги для отслеживания этапов
     local user_exists=0
     local user_deleted=0
-    local home_dir_removed=0
 
     # Запрос имени пользователя
     read -p "Введите имя пользователя для удаления: " username
@@ -232,30 +235,20 @@ delete_user() {
     user_exists=1
     echo -e "\033[1;32m[+] Пользователь '$username' найден в системе\033[0m"
 
-    # Запрос на удаление домашней папки (по умолчанию — оставить)
-    read -p "Удалить домашнюю папку пользователя (/home/$username)? [n/Y]: " remove_home
+    # Подтверждение удаления
+    read -p "Вы уверены, что хотите удалить пользователя '$username'? [y/N]: " confirm
     echo
 
-    # Логика обработки ввода:
-    # - пустой ввод или 'n'/'no' → не удалять папку
-    # - 'y'/'yes' → удалить папку
-    if [ -z "$remove_home" ] || [[ "$remove_home" =~ ^[nN][oO]?$ ]]; then
-        echo -e "\033[1;33m[*] Домашняя папка будет сохранена\033[0m"
-    elif [[ "$remove_home" =~ ^[yY][eE]?[sS]?$ ]]; then
-        if rm -rf "/home/$username"; then
-            home_dir_removed=1
-            echo -e "\033[1;32m[+] Домашняя папка /home/$username удалена\033[0m"
-        else
-            echo -e "\033[1;31m[-] Ошибка: не удалось удалить домашнюю папку /home/$username\033[0m"
-        fi
-    else
-        echo -e "\033[1;33m[*] Нераспознанный ввод ('$remove_home') — домашняя папка сохранена\033[0m"
+    if [[ ! "$confirm" =~ ^[yY] ]]; then
+        echo -e "\033[1;33m[*] Удаление пользователя '$username' отменено\033[0m"
+        return 0
     fi
 
-    # Удаление пользователя
+    # Удаление пользователя БЕЗ домашней директории
     if userdel "$username"; then
         user_deleted=1
         echo -e "\033[1;32m[+] Пользователь '$username' удалён из системы\033[0m"
+        echo -e "\033[1;33m[*] Домашняя директория /home/$username сохранена\033[0m"
     else
         echo -e "\033[1;31m[-] Ошибка: не удалось удалить пользователя '$username'\033[0m"
         return 1
@@ -272,14 +265,9 @@ delete_user() {
 
     if [ $user_deleted -eq 1 ]; then
         echo -e "\033[1;32m✓ Пользователь успешно удалён\033[0m"
+        echo -e "\033[1;33m⁍ Домашняя директория /home/$username сохранена\033[0m"
     else
         echo -e "\033[1;31m✗ Не удалось удалить пользователя\033[0m"
-    fi
-
-    if [ $home_dir_removed -eq 1 ]; then
-        echo -e "\033[1;32m✓ Домашняя папка /home/$username удалена\033[0m"
-    else
-        echo -e "\033[1;33m⁍ Домашняя папка /home/$username сохранена\033[0m"
     fi
 
     echo -e "\033[1;44m=================================================\033[0m"
@@ -292,34 +280,33 @@ delete_user() {
     fi
 }
 
-
 # Главное меню
 while true; do
-    echo -e "\033[1;34м─────────────────────────────────────────────────\033[0m"
-    echo -e "\033[1;36м          МЕНЮ управление пользователями       \033[0m"
-    echo -e "\033[1;34м─────────────────────────────────────────────────\033[0m"
+    echo -e "\033[1;34m─────────────────────────────────────────────────\033[0m"
+    echo -e "\033[1;36m          МЕНЮ управление пользователями       \033[0m"
+    echo -e "\033[1;34m─────────────────────────────────────────────────\033[0m"
     echo "1. Создать пользователя"
     echo "2. Удалить пользователя"
     echo -e "\033[1;31m0. Выход\033[0m"
-    echo -e "\033[1;34м─────────────────────────────────────────────────\033[0m"
+    echo -e "\033[1;34m─────────────────────────────────────────────────\033[0m"
 
     read -p "Выберите действие [0-2]: " choice
 
     case $choice in
         1)
-            echo -e "\033[1;33м→  Создание пользователя\033[0m"
+            echo -e "\033[1;33m→  Создание пользователя\033[0m"
             create_user
             ;;
         2)
-            echo -e "\033[1;33м→  Удаление пользователя\033[0m"
+            echo -e "\033[1;33m→  Удаление пользователя\033[0m"
             delete_user
             ;;
         0)
-            echo -e "\033[1;32мДо свидания!\033[0m"
+            echo -e "\033[1;32mДо свидания!\033[0m"
             break
             ;;
         *)
-            echo -e "\033[1;31м[-] Неверный выбор. Введите 0, 1 или 2.\033[0m"
+            echo -e "\033[1;31m[-] Неверный выбор. Введите 0, 1 или 2.\033[0m"
             ;;
     esac
     echo ""
