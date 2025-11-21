@@ -169,7 +169,7 @@ create_user() {
     echo -e "\033[1;44m=================================================\033[0m"
 
     # Записываем всё в .bashrc
-    cat <<EOF >> "$HOME_DIR/.bashrc"
+    cat <<'EOF' >> "$HOME_DIR/.bashrc"
 
 # --- Custom Setup ---
 
@@ -185,34 +185,34 @@ export PS1="\[$(tput setaf 3)\]bash\[$(tput setaf 4)\]:\[$(tput bold)\]\[$(tput 
 
 # Предупреждение для root
 if [[ $(id -u) -eq 0 ]]; then
-    export PS1="\[$(tput setab 1)\]\[$(tput setaf 7)\]Warning! You are root!\[$(tput sgr0)\]\n$PS1"
+    export PS1="\[$(tput setab 1)\]Warning! You are root!\[$(tput sgr0)\]\n$PS1"
 fi
 
 # Функция для распаковки архивов
 extract() {
-    for archive in "\$@"; do
-        if [ -f "\$archive" ]; then
-            case \$archive in
-                *.tar.bz2) tar xvjf "\$archive" ;;
-                *.tar.gz)  tar xvzf "\$archive" ;;
-                *.bz2)     bunzip2 "\$archive" ;;
-                *.rar)     rar x "\$archive" ;;
-                *.gz)      gunzip "\$archive" ;;
-                *.tar)     tar xvf "\$archive" ;;
-                *.zip)     unzip "\$archive" ;;
-                *.7z)      7z x "\$archive" ;;
-                *)         echo "Don't know how to extract '\$archive'..." ;;
-            esac
-        else
-            echo "'\$archive' is not a valid file!"
-        fi
-    done
+ for archive in "$@"; do
+  if [ -f "$archive" ]; then
+   case $archive in
+    *.tar.bz2) tar xvjf $archive ;;
+    *.tar.gz) tar xvzf $archive ;;
+    *.bz2) bunzip2 $archive ;;
+    *.rar) rar x $archive ;;
+    *.gz) gunzip $archive ;;
+    *.tar) tar xvf $archive ;;
+    *.zip) unzip $archive ;;
+    *.7z) 7z x $archive ;;
+    *) echo "don't know how to extract '$archive'..." ;;
+   esac
+  else
+   echo "'$archive' is not a valid file!"
+  fi
+ done
 }
 
 # Приветственное сообщение при входе
 echo "Добро пожаловать, $username!"
-echo "Рабочая директория: \$(pwd)"
-echo "Дата: \$(date)"
+echo "Рабочая директория: $(pwd)"
+echo "Дата: $(date)"
 EOF
 
     # Устанавливаем владельца файла — пользователь, а не root
