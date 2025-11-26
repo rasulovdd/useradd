@@ -51,6 +51,12 @@
     ./create_user.sh
     ```
 
+4. либо запускаем одной командой (нужны права sudo)
+
+    ```bash
+    bash <(curl -fsSL https://raw.githubusercontent.com/rasulovdd/useradd/main/create_user.sh)
+    ```
+
 ## Настройка окружения
 
 При создании пользователя в ~/.bashrc добавляются:
