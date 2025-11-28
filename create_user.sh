@@ -203,7 +203,7 @@ HISTCONTROL=ignoreboth
 HISTSIZE=1000
 HISTFILESIZE=2000
 shopt -s histappend
-
+export HISTTIMEFORMAT="%F %T "
 
 # Функция для распаковки архивов
 extract() {
@@ -463,6 +463,7 @@ EOF
         echo "HISTSIZE=1000" >> "$temp_file"
         echo "HISTFILESIZE=2000" >> "$temp_file"
         echo "shopt -s histappend" >> "$temp_file"
+        echo "export HISTTIMEFORMAT='%F %T '" >> "$temp_file"
         echo "" >> "$temp_file"
     fi
 
@@ -514,7 +515,7 @@ while true; do
     echo -e "\033[1;34m─────────────────────────────────────────────────\033[0m"
     echo "1. Создать пользователя"
     echo "2. Удалить пользователя"
-    echo "3. Применить стандартные настройки"
+    echo "3. Применить продвинутые настройки"
     echo -e "\033[1;31m0. Выход\033[0m"
     echo -e "\033[1;34m─────────────────────────────────────────────────\033[0m"
 
@@ -530,7 +531,7 @@ while true; do
             delete_user
             ;;
         3)
-            echo -e "\033[1;33m→  Применить стандартные настройки\033[0m"
+            echo -e "\033[1;33m→  Применить продвинутые настройки\033[0m"
             setup_bashrc
             ;;
         0)
