@@ -169,7 +169,10 @@ create_user() {
     # Записываем всё в .bashrc
     cat <<'EOF' >> "$HOME_DIR/.bashrc"
 
-# --- Custom Setup ---
+# ========================================================================
+# Custom settings added by setup script on $(date)
+# @RasulovDD
+# ========================================================================
 
 # Алиасы 
 alias ll='ls -alF'
@@ -177,6 +180,7 @@ alias gs='git status'
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
+alias run='tmux attach || tmux'
 
 # Красочный PS1
 export PS1="\[$(tput setaf 3)\]bash\[$(tput setaf 4)\]:\[$(tput bold)\]\[$(tput setaf 6)\]\h\[$(tput setaf 4)\]@\[$(tput setaf 2)\]\u\[$(tput setaf 4)\]:\[$(tput setaf 5)\]\w\n\[$(tput setaf 3)\]\\$ \[$(tput sgr0)\]"
@@ -193,6 +197,13 @@ fi
 #    local reset=$(tput sgr0)
 #    export PS1="\[${red_bg}${white_fg}\]Warning! You are root!\[${reset}\]\n$PS1"
 #fi
+
+# === Настройки истории ===
+HISTCONTROL=ignoreboth
+HISTSIZE=1000
+HISTFILESIZE=2000
+shopt -s histappend
+
 
 # Функция для распаковки архивов
 extract() {
@@ -354,6 +365,18 @@ setup_bashrc() {
     else
         log_info "Алиасы уже настроены, пропускаем..."
     fi
+
+    # 1.1 Добавляем алиаса run (если его ещё нет)
+    if ! grep -q "run='tmux attach || tmux'" "$temp_file"; then
+        log_info "Добавляем алиас..."
+        echo "# === Алиас RUN ===" >> "$temp_file"
+        echo "alias run='tmux attach || tmux'" >> "$temp_file"
+        echo "" >> "$temp_file"
+    else
+        log_info "Алиас уже настроен, пропускаем..."
+    fi
+
+
 
     # 2. Добавляем красочный PS1 (если его ещё нет)
     if ! grep -q "export PS1=.*tput setaf" "$temp_file"; then
