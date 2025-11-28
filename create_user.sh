@@ -203,7 +203,7 @@ HISTCONTROL=ignoreboth
 HISTSIZE=1000
 HISTFILESIZE=2000
 shopt -s histappend
-
+export HISTTIMEFORMAT="%F %T "
 
 # Функция для распаковки архивов
 extract() {
@@ -463,6 +463,7 @@ EOF
         echo "HISTSIZE=1000" >> "$temp_file"
         echo "HISTFILESIZE=2000" >> "$temp_file"
         echo "shopt -s histappend" >> "$temp_file"
+        echo "export HISTTIMEFORMAT='%F %T '" >> "$temp_file"
         echo "" >> "$temp_file"
     fi
 
